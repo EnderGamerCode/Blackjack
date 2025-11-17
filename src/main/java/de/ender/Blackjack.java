@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 public class Blackjack extends Application {
 
     static void main(String[] args) {
@@ -25,6 +27,10 @@ public class Blackjack extends Application {
         Scene scene = new Scene(gamePane);
         primaryStage.setScene(scene);
         primaryStage.show();
+        scene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm()
+        );
+
 
     }
 }

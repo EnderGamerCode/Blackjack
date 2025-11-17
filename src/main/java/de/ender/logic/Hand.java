@@ -79,9 +79,6 @@ public class Hand {
         return String.valueOf(raw);
     }
 
-    public boolean canPlayerHit() {
-        return getBestTotal() < 21;
-    }
 
     public boolean isBust() {
         return getBestTotal() > 21;
@@ -89,6 +86,10 @@ public class Hand {
 
     public boolean isBlackjack() {
         return cards.size() == 2 && getBestTotal() == 21;
+    }
+
+    public boolean is21() {
+        return getBestTotal() == 21;
     }
 
 }
