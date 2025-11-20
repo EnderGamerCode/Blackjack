@@ -77,14 +77,14 @@ public class GamePane extends StackPane {
 
             if (player.getHand().isBust()) {
                 gameState = GameState.DEALER_TURN;
-                runDealerTurn();
+                runDealerTurn(0);
             }
         });
 
         standButton.setOnAction(e -> {
             if (gameState != GameState.PLAYER_TURN) return;
 
-            runDealerTurn();
+            runDealerTurn(800);
         });
 
         //vertical alignment
@@ -108,7 +108,7 @@ public class GamePane extends StackPane {
         gameState = GameState.PLAYER_TURN;
 
         if(player.getHand().is21()) {
-            runDealerTurn();
+            runDealerTurn(400);
         }
 
     }
@@ -215,19 +215,19 @@ public class GamePane extends StackPane {
 
     //Dealer Turn
 
-    private void runDealerTurn() {
+    private void runDealerTurn(int delay) {
         gameState = GameState.DEALER_TURN;
         actionTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(() -> {
 
-                    if (dealer.getHand().getBestTotal() < 17 && !player.getHand().isBust() && !player.getHand().is21()) {
+                    if (dealer.getHand().getBestTotal() < 17 && !player.getHand().isBust() && !player.getHand().isBlackjack()) {
 
                         dealer.getHand().addCard(deck.pickRandomCard());
                         updateHandUI(dealerHandPane, dealer.getHand());
 
-                        runDealerTurn();
+                        runDealerTurn(800);
                     }
                     else {
                         updateHandUI(dealerHandPane, dealer.getHand());
@@ -236,7 +236,7 @@ public class GamePane extends StackPane {
                     }
                 });
             }
-        }, 800);
+        }, delay);
     }
 
 
