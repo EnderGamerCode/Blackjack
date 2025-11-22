@@ -36,11 +36,9 @@ public class ExplainationPane extends StackPane {
         backBox.setPadding(new Insets(10, 0, 0, 10)); // top, right, bottom, left
 
 
-        Button backButton = new Button("Back");
-        backButton.getStyleClass().add("standard-button");
-        backButton.setOnAction(e -> {
-            gameHandler.showTitleScreen();
-        });
+        Button backButton = new Button("\uD83D\uDD19");
+        backButton.getStyleClass().add("close-button");
+        backButton.setOnAction(_ -> gameHandler.showTitleScreen());
         backBox.getChildren().add(backButton);
 
         VBox explanationPane = new VBox();

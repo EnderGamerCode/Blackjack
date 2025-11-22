@@ -2,6 +2,7 @@ package de.waft;
 
 import de.waft.logic.GameHandler;
 import javafx.application.Application;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class Blackjack extends Application {
@@ -12,15 +13,15 @@ public class Blackjack extends Application {
 
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         primaryStage.setTitle("Schwarzer Jakob");
         primaryStage.setResizable(true);
         primaryStage.setMaximized(true);
-        primaryStage.setOnCloseRequest(event -> {
-            System.exit(0);
-        });
+        primaryStage.setOnCloseRequest(_ -> System.exit(0));
 
-        GameHandler gameHandler = new GameHandler(primaryStage);
+        IO.println(Font.getFamilies());
+
+        new GameHandler(primaryStage);
 
 
     }

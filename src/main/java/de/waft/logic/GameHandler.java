@@ -17,7 +17,7 @@ public class GameHandler {
     ExplainationPane explainationPane;
 
     public Font standard_font = Font.font("Comic Sans MS", 20);
-    public Font title_font = Font.font("Comic Sans MS", 80);
+    public Font title_font = Font.font("Georgia", 150);
 
     Stage stage;
 
