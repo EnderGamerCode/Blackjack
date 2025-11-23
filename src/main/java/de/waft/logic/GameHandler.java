@@ -7,55 +7,53 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.scene.input.KeyCombination;
 
 import java.util.Objects;
 
 public class GameHandler {
 
-    GamePane gamePane;
-    TitleScreenPane titleScreenPane;
-    ExplainationPane explainationPane;
+    private GamePane gamePane;
+    private TitleScreenPane titleScreenPane;
+    private ExplainationPane explanationPane;
 
     public Font standard_font = Font.font("Comic Sans MS", 20);
     public Font title_font = Font.font("Georgia", 150);
 
-    Stage stage;
+    private final StackPane root;
 
     public GameHandler(Stage stage) {
-        this.stage = stage;
 
-        titleScreenPane = new TitleScreenPane(this);
+        root = new StackPane();
 
-        stage.setScene(createScene(titleScreenPane));
-        stage.show();
+        Scene scene = new Scene(root);
+
+        scene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm()
+        );
+
+        stage.setScene(scene);
+
+        // Fullscreen settings
+        stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+        stage.setFullScreenExitHint("");
+        stage.setFullScreen(true);
+
+        showTitleScreen();
     }
 
-
-    public void startGame(){
+    public void startGame() {
         gamePane = new GamePane(this);
-        stage.setScene(createScene(gamePane));
+        root.getChildren().setAll(gamePane);
     }
 
     public void showTitleScreen() {
         titleScreenPane = new TitleScreenPane(this);
-        stage.setScene(createScene(titleScreenPane));
+        root.getChildren().setAll(titleScreenPane);
     }
 
     public void showExplanationScreen() {
-        explainationPane = new ExplainationPane(this);
-        stage.setScene(createScene(explainationPane));
+        explanationPane = new ExplainationPane(this);
+        root.getChildren().setAll(explanationPane);
     }
-
-
-    Scene createScene(StackPane stackPane){
-        Scene scene = new Scene(stackPane);
-        //styles
-        scene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm()
-        );
-        //
-        return scene;
-    }
-
-
 }

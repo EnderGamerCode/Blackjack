@@ -6,23 +6,24 @@ import de.waft.logic.Player;
 import de.waft.logic.Hand;
 import de.waft.core.Deck;
 
+import de.waft.ui.components.ActionButton;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class GamePane extends StackPane {
 
 
-    private GameHandler gameHandler;
+    private final GameHandler gameHandler;
     private GameState gameState = GameState.START;
 
     private Deck deck;
@@ -37,18 +38,34 @@ public class GamePane extends StackPane {
 
     private StackPane gameOverOverlay;
     private Text gameOverMessage;
-    private Button restartButton;
-    private Button backToTitleScreenButton;
 
-    private Timer actionTimer = new Timer();
+    private final Timer actionTimer = new Timer();
 
     Font standard_font;
 
     public GamePane(GameHandler gameHandler) {
+
         this.gameHandler = gameHandler;
         standard_font = gameHandler.standard_font;
 
-        this.setPadding(new Insets(20));
+        //background
+        StackPane bg = new StackPane();
+        bg.prefWidthProperty().bind(this.widthProperty());
+        bg.prefHeightProperty().bind(this.heightProperty());
+
+        Image image = new Image(
+                Objects.requireNonNull(getClass().getResourceAsStream("/images/Spieltisch.png"))
+        );
+
+        bg.setBackground(new Background(
+                new BackgroundImage(
+                        image,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER,
+                        new BackgroundSize(100, 100, true, true, false, true)
+                )
+        ));
 
         startNewGame();
 
@@ -59,15 +76,7 @@ public class GamePane extends StackPane {
         HBox buttons = new HBox(20);
         buttons.setAlignment(Pos.CENTER);
 
-        Button hitButton = new Button("Hit");
-        hitButton.getStyleClass().add("standard-button");
-        Button standButton = new Button("Stand");
-        standButton.getStyleClass().add("standard-button");
-
-        buttons.getChildren().addAll(hitButton, standButton);
-
-        // Game logic
-        hitButton.setOnAction(e -> {
+        ActionButton hitButton = new ActionButton("Hit", () -> {
             if (gameState != GameState.PLAYER_TURN) return;
 
             if (!player.getHand().isBust()) {
@@ -81,18 +90,21 @@ public class GamePane extends StackPane {
             }
         });
 
-        standButton.setOnAction(e -> {
+        ActionButton standButton = new ActionButton("Stand", () -> {
             if (gameState != GameState.PLAYER_TURN) return;
 
             runDealerTurn(800);
         });
 
-        //vertical alignment
+        buttons.getChildren().addAll(hitButton, standButton);
+
+
+        // Vertical alignment
         VBox layout = new VBox(45);
         layout.setAlignment(Pos.CENTER);
-        layout.getChildren().addAll(dealerBox, buttons, playerBox);
+        layout.getChildren().addAll(dealerBox, playerBox ,buttons );
 
-        this.getChildren().add(layout);
+        this.getChildren().addAll(bg, layout);
 
         // Build Game Over overlay
         buildGameOverOverlay();
@@ -113,19 +125,26 @@ public class GamePane extends StackPane {
 
     }
 
+
+    //player ui
     private VBox createPlayerBox(Player p) {
         VBox box = new VBox(10);
         box.setAlignment(Pos.CENTER);
+        box.setMaxWidth(300);
+        box.setStyle("-fx-background-color: rgba(255,255,255,0.25);" + "-fx-background-radius: 10;" + "-fx-padding: 20;" + "-fx-border-color: black;" + "-fx-border-radius: 10;" + "-fx-border-width: 4;");
 
         Text name = new Text(p.getName());
         name.setFont(standard_font);
 
-        StackPane handPane = createHandPane(p.getHand());
+        StackPane handPane = new StackPane();
+        handPane.setPrefHeight(120);
+        handPane.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        updateHandUI(handPane, player.getHand());
 
         Text valueText = new Text("Total: " + p.getHand().getDisplayValue());
         valueText.setFont(standard_font);
 
-        if (p.getName().equals("Player")) {
+        if (!p.getName().equals("Dealer")) {
             playerHandPane = handPane;
             playerValueText = valueText;
         } else {
@@ -137,39 +156,31 @@ public class GamePane extends StackPane {
         return box;
     }
 
-    private StackPane createHandPane(Hand hand) {
-        StackPane pane = new StackPane();
-        pane.setPrefHeight(120);
-        pane.setPrefWidth(600);
-
-        updateHandUI(pane, hand);
-        return pane;
-    }
-
     private void updateHandUI(StackPane pane, Hand hand) {
         pane.getChildren().clear();
+
+        HBox cards = new HBox(10);
+        cards.setAlignment(Pos.CENTER);
 
         for (int i = 0; i < hand.getCards().size(); i++) {
             Text t = new Text(hand.getCards().get(i).toString());
             t.setFont(Font.font(20));
-            t.setTranslateX(i * 60);
-            pane.getChildren().add(t);
+            cards.getChildren().add(t);
         }
+
+        pane.getChildren().add(cards);
 
         String total = "Total: " + hand.getDisplayValue();
 
         if (pane == playerHandPane) {
             playerValueText.setText(total);
-            playerValueText.setFont(standard_font);
         } else if (pane == dealerHandPane) {
             dealerValueText.setText(total);
-            dealerValueText.setFont(standard_font);
         }
     }
 
 
-    //get winning message
-
+    //winning message
     private String checkWinningMessage() {
         int playerTotal = player.getHand().getBestTotal();
         int dealerTotal = dealer.getHand().getBestTotal();
@@ -191,7 +202,6 @@ public class GamePane extends StackPane {
     }
 
     //Restart Game
-
     private void restartGame() {
         // Reset everything
         startNewGame();
@@ -206,7 +216,6 @@ public class GamePane extends StackPane {
     }
 
     //Game over
-
     private void showGameOver(String message) {
         gameState = GameState.GAME_OVER;
         gameOverMessage.setText(message);
@@ -214,7 +223,6 @@ public class GamePane extends StackPane {
     }
 
     //Dealer Turn
-
     private void runDealerTurn(int delay) {
         gameState = GameState.DEALER_TURN;
         actionTimer.schedule(new TimerTask() {
@@ -240,8 +248,7 @@ public class GamePane extends StackPane {
     }
 
 
-    //build game over overlay (save resources)
-
+    //game over overlay
     private void buildGameOverOverlay() {
         gameOverOverlay = new StackPane();
         gameOverOverlay.setVisible(false);
@@ -259,15 +266,11 @@ public class GamePane extends StackPane {
         gameOverMessage.setFill(Color.WHITE);
         gameOverMessage.setFont(Font.font("Comic Sans MS", 34));
 
-        backToTitleScreenButton = new Button("Main Menu");
-        backToTitleScreenButton.getStyleClass().add("standard-button");
-        backToTitleScreenButton.setOnAction(e -> gameHandler.showTitleScreen());
+        ActionButton backToTitleScreenButton = new ActionButton("Main Menu", gameHandler::showTitleScreen);
 
-        restartButton = new Button("Restart");
-        restartButton.getStyleClass().add("standard-button");
-        restartButton.setOnAction(e -> restartGame());
+        ActionButton restartButton = new ActionButton("Restart", this::restartGame);
 
-        content.getChildren().addAll(gameOverMessage, backToTitleScreenButton,restartButton);
+        content.getChildren().addAll(gameOverMessage, backToTitleScreenButton, restartButton);
 
         gameOverOverlay.getChildren().addAll(dim, content);
 

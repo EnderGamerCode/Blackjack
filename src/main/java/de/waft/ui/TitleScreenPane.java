@@ -6,30 +6,34 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import java.util.Objects;
 
 public class TitleScreenPane extends StackPane {
 
     public TitleScreenPane(GameHandler gameHandler) {
 
-        // Background gradient
-        Rectangle bg = new Rectangle();
-        bg.widthProperty().bind(widthProperty());
-        bg.heightProperty().bind(heightProperty());
-        bg.setFill(new LinearGradient(
-                0, 0, 1, 1,
-                true,
-                CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#14a1e2ff")),
-                new Stop(1, Color.web("#9007cfff"))));
+        StackPane bg = new StackPane();
+        bg.prefWidthProperty().bind(widthProperty());
+        bg.prefHeightProperty().bind(heightProperty());
+
+        Image image = new Image(
+                Objects.requireNonNull(getClass().getResourceAsStream("/images/Spieltisch.png"))
+        );
+
+        bg.setBackground(new Background(
+                new BackgroundImage(
+                        image,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER,
+                        new BackgroundSize(100, 100, true, true, false, true)
+                )
+        ));
+
 
 
         // Main layout
