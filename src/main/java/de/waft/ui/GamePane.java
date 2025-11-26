@@ -41,6 +41,11 @@ public class GamePane extends StackPane {
 
     private final Timer actionTimer = new Timer();
 
+    private HBox buttons = new HBox(20);
+
+    private ActionButton doubleButton;
+    private ActionButton splitButton;
+
     Font standard_font;
 
     public GamePane(GameHandler gameHandler) {
@@ -73,7 +78,6 @@ public class GamePane extends StackPane {
         VBox dealerBox = createPlayerBox(dealer);
         VBox playerBox = createPlayerBox(player);
 
-        HBox buttons = new HBox(20);
         buttons.setAlignment(Pos.CENTER);
 
         ActionButton hitButton = new ActionButton("Hit", () -> {
@@ -88,6 +92,9 @@ public class GamePane extends StackPane {
                 gameState = GameState.DEALER_TURN;
                 runDealerTurn(0);
             }
+
+            buttons.getChildren().remove(doubleButton);
+            buttons.getChildren().remove(splitButton);
         });
 
         ActionButton standButton = new ActionButton("Stand", () -> {
@@ -96,21 +103,29 @@ public class GamePane extends StackPane {
             runDealerTurn(800);
         });
 
-        ActionButton doubleButton = new ActionButton("Double", () -> {
+        doubleButton = new ActionButton("Double", () -> {
             if (gameState != GameState.PLAYER_TURN) return;
+            if (player.getHand().getCards().size() != 2) return;
 
+            // Double
             player.getHand().addCard(deck.pickRandomCard());
             updateHandUI(playerHandPane, player.getHand());
 
+            // Bust?
+            if (player.getHand().isBust()) {
+                runDealerTurn(0);
+                return;
+            }
+
+            // Stand
             runDealerTurn(800);
         });
 
-        ActionButton splitButton = new ActionButton("Split", () -> {
+        splitButton = new ActionButton("Split", () -> {
             if (gameState != GameState.PLAYER_TURN) return;
         });
 
         buttons.getChildren().addAll(hitButton, standButton, doubleButton, splitButton);
-
 
         // Vertical alignment
         VBox layout = new VBox(45);
@@ -217,6 +232,12 @@ public class GamePane extends StackPane {
     //Restart Game
     private void restartGame() {
         // Reset everything
+        if (!buttons.getChildren().contains(doubleButton)) {
+            buttons.getChildren().add(doubleButton);
+        } if (!buttons.getChildren().contains(splitButton)) {
+            buttons.getChildren().add(splitButton);
+        }
+
         startNewGame();
 
         updateHandUI(playerHandPane, player.getHand());
