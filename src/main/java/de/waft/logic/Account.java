@@ -4,9 +4,8 @@ public class Account {
 
     int amount;
 
-    public Account() {
+    public Account(Player player) {
         this.amount = 500;
-
     }
 
 
@@ -23,4 +22,7 @@ public class Account {
         return amount + "$";
     }
 
+    public int getAmount() {
+        return amount;
+    }
 }

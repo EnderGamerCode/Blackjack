@@ -7,8 +7,11 @@ import de.waft.logic.Hand;
 import de.waft.core.Deck;
 
 import de.waft.ui.components.ActionButton;
+import de.waft.ui.components.CustomButton;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
@@ -37,6 +40,8 @@ public class GamePane extends StackPane {
     private Text dealerValueText;
 
     private StackPane gameOverOverlay;
+    private StackPane betOverlay;
+
     private Text gameOverMessage;
 
     private final Timer actionTimer = new Timer();
@@ -46,12 +51,17 @@ public class GamePane extends StackPane {
     private ActionButton doubleButton;
     private ActionButton splitButton;
 
+    VBox dealerBox;
+    VBox playerBox;
+
     Font standard_font;
 
     public GamePane(GameHandler gameHandler) {
 
         this.gameHandler = gameHandler;
         standard_font = gameHandler.standard_font;
+
+
 
         //background
         StackPane bg = new StackPane();
@@ -73,13 +83,95 @@ public class GamePane extends StackPane {
         ));
 
         startNewGame();
+        buildBetOverlay();
 
         // Build layout sections
-        VBox dealerBox = createPlayerBox(dealer);
-        VBox playerBox = createPlayerBox(player);
+        dealerBox = createPlayerBox(dealer);
+        playerBox = createPlayerBox(player);
 
         buttons.setAlignment(Pos.CENTER);
 
+        // Vertical alignment
+        VBox layout = new VBox(45);
+        layout.setAlignment(Pos.CENTER);
+        layout.getChildren().addAll(dealerBox, playerBox ,buttons );
+
+        this.getChildren().addAll(bg, layout);
+
+        showBetScreen();
+
+        // Build Game Over overlay
+        buildGameOverOverlay();
+    }
+
+    private void showBetScreen() {
+        buttons.getChildren().clear();
+        playerBox.setVisible(false);
+        dealerBox.setVisible(false);
+        betOverlay.setVisible(true);
+        betOverlay.toFront();
+    }
+
+    private void buildBetOverlay() {
+        betOverlay = new StackPane();
+        betOverlay.setVisible(true);
+        betOverlay.setPickOnBounds(true);
+
+        VBox box = new VBox(20);
+        box.setAlignment(Pos.CENTER);
+
+        HBox centerBox = new HBox(10);
+        centerBox.setAlignment(Pos.CENTER);
+
+        int[] totalBet = { player.getAccount().getAmount() / 5 };
+
+
+        //adjust text
+        Text betTotal = new Text(totalBet[0] + "$");
+
+        CustomButton addButton = new CustomButton("+25", "adjustAdd-button", () -> {
+            if(totalBet[0] + 25 <= player.getAccount().getAmount()) {
+                totalBet[0] += 25;
+                betTotal.setText(totalBet[0] + "$");
+            }
+        });
+
+        CustomButton subtractButton = new CustomButton("-25","adjustSubtract-button", () -> {
+            if(totalBet[0] - 25 >= 0) {
+                totalBet[0] -= 25;
+                betTotal.setText(totalBet[0] + "$");
+            }
+        });
+
+
+        centerBox.getChildren().addAll(addButton, betTotal, subtractButton);
+
+        CustomButton doneButton = new CustomButton("Done","action-button", () -> {
+            betOverlay.setVisible(false);
+            playerBox.setVisible(true);
+            dealerBox.setVisible(true);
+            showActionButtons();
+        });
+
+        box.getChildren().addAll(centerBox, doneButton);
+
+        betOverlay.getChildren().add(box);
+
+        this.getChildren().add(betOverlay);
+        betOverlay.toFront();
+    }
+
+
+
+
+    private void showActionButtons() {
+        buttons.getChildren().clear();
+
+        //show Cards / Titles
+        playerBox.setVisible(true);
+        dealerBox.setVisible(true);
+
+        //Create Action Buttons
         ActionButton hitButton = new ActionButton("Hit", () -> {
             if (gameState != GameState.PLAYER_TURN) return;
 
@@ -126,32 +218,18 @@ public class GamePane extends StackPane {
         });
 
         buttons.getChildren().addAll(hitButton, standButton, doubleButton, splitButton);
-
-        // Vertical alignment
-        VBox layout = new VBox(45);
-        layout.setAlignment(Pos.CENTER);
-        layout.getChildren().addAll(dealerBox, playerBox ,buttons );
-
-        this.getChildren().addAll(bg, layout);
-
-        // Build Game Over overlay
-        buildGameOverOverlay();
     }
 
     private void startNewGame() {
-        //Kontrovers:
         this.deck = new Deck();
-        //
         this.player = new Player("Player", deck,false);
         this.dealer = new Player("Dealer", deck, true);
 
         gameState = GameState.PLAYER_TURN;
 
-        if(player.getHand().is21()) {
-            runDealerTurn(400);
-        }
-
+        // boxes will be hidden by the constructor's showBetScreen()
     }
+
 
 
     //player ui
@@ -184,6 +262,7 @@ public class GamePane extends StackPane {
         return box;
     }
 
+    //update Cards from Hands in UI
     private void updateHandUI(StackPane pane, Hand hand) {
         pane.getChildren().clear();
 
@@ -239,6 +318,8 @@ public class GamePane extends StackPane {
         }
 
         startNewGame();
+
+        showBetScreen();
 
         updateHandUI(playerHandPane, player.getHand());
         updateHandUI(dealerHandPane, dealer.getHand());

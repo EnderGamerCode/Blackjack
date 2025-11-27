@@ -18,7 +18,7 @@ public class Player {
 
         //add money from local files here:
         if(!dealer) {
-            account = new Account();
+            account = new Account(this);
         }
         //
 
